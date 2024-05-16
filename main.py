@@ -1,11 +1,12 @@
 import time
+import random
 import cv2 as cv
 import numpy as np
 from PIL import Image
 from mpi4py import MPI
 
 # Configurare path
-path_img = "art.png"
+path_img = "cal.png"
 
 
 # Initialize MPI
@@ -54,6 +55,7 @@ def lineDist(p1, p2, p):
     return abs((p[1] - p1[1]) * (p2[0] - p1[0]) -
                (p2[1] - p1[1]) * (p[0] - p1[0]))
 
+
 # End points of line L are p1 and p2. side can have value
 # 1 or -1 specifying each of the parts made by the line L
 def quickHull(a, n, p1, p2, side):
@@ -80,6 +82,7 @@ def quickHull(a, n, p1, p2, side):
     quickHull(a, n, a[ind], p1, -findSide(a[ind], p1, p2))
     quickHull(a, n, a[ind], p2, -findSide(a[ind], p2, p1))
 
+
 def printHull(a, n):
     # a[i].second -> y-coordinate of the ith point
     if (n < 3):
@@ -96,14 +99,7 @@ def printHull(a, n):
         if a[i][0] > a[max_x][0]:
             max_x = i
 
-    # Recursively find convex hull points on
-    # one side of line joining a[min_x] and
-    # a[max_x]
     quickHull(a, n, a[min_x], a[max_x], 1)
-
-    # Recursively find convex hull points on
-    # other side of line joining a[min_x] and
-    # a[max_x]
     quickHull(a, n, a[min_x], a[max_x], -1)
 
     # Gather results to root process
@@ -116,18 +112,43 @@ def printHull(a, n):
             centroid = calculate_centroid(list(proc_hull))
             sortd = sort_points_by_angle(list(proc_hull), centroid)
 
-            og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
-            output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
-
-            cv.polylines(output_image, [np.array(list(proc_hull))], isClosed=True, color=(0, 255, 0), thickness=2)
-
-            # Show the result
-            cv.imshow('Convex Hull', output_image)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
+            # og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
+            # output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
+            #
+            # cv.polylines(output_image, [np.array(list(proc_hull))], isClosed=True, color=(0, 255, 0), thickness=2)
+            #
+            # # Show the result
+            # cv.imshow('Convex Hull', output_image)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
 
             all_points.extend(sortd)
+
         return all_points
+
+
+def secondPrintHull(a, n):
+    # reset hull
+    hull.clear()
+
+    # a[i].second -> y-coordinate of the ith point
+    if (n < 3):
+        print("Convex hull not possible")
+        return
+
+    min_x = 0
+    max_x = 0
+    for i in range(1, n):
+        if a[i][0] < a[min_x][0]:
+            min_x = i
+        if a[i][0] > a[max_x][0]:
+            max_x = i
+
+    quickHull(a, n, a[min_x], a[max_x], 1)
+    quickHull(a, n, a[min_x], a[max_x], -1)
+
+    return hull
+
 
 # Divide data into equal-sized chunks for scattering
 def chunk_data(data, size):
@@ -179,20 +200,27 @@ all_points = comm.gather(all_points, root=0)
 if rank == 0:
     all_points = [x for x in all_points if x is not None]
     all_points_flat = [point for sublist in all_points for point in sublist]
+
     # print("\nAll points in Convex Hull:", all_points_flat)
 
     # Measure execution time
     end_time = time.time()
     print("\nExecution time: {:.4f} seconds".format(end_time - start_time))
 
-    # Afisare imagine rezultata ----------------------------------------------------------------------
-
+    # centrul punctelor negre / formei
     centroid = calculate_centroid(all_points_flat)
     sorted_points = sort_points_by_angle(all_points_flat, centroid)
 
+    # A doua executare a algoritmului
+    final_result = secondPrintHull(sorted_points, len(sorted_points))
+    centroid = calculate_centroid(final_result)
+    final_sorted_points = sort_points_by_angle(final_result, centroid)
+
+    # Afisare imagine rezultata ----------------------------------------------------------------------
+
     og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
     output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
-    cv.polylines(output_image, [np.array(sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
+    cv.polylines(output_image, [np.array(final_sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
 
     # Show the result
     cv.imshow('Convex Hull', output_image)
