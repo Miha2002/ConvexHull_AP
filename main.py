@@ -5,7 +5,7 @@ from PIL import Image
 from mpi4py import MPI
 
 # Configurare path imagine
-path_img = "random.png"
+path_img = "color.jpg"
 
 # Initializare MPI
 comm = MPI.COMM_WORLD
@@ -156,6 +156,8 @@ start_time = time.time()
 if rank == 0:
     # Deschidem imaginea si o facem alb-negru
     img = Image.open(path_img).convert("L")
+    img = img.point(lambda x: 0 if x<128 else 255, '1') # Face imaginea alb/negru = 1/0
+    img.show()
     width, height = img.size
     pixels = img.load()
 
@@ -200,8 +202,7 @@ if rank == 0:
     final_sorted_points = sort_points_by_angle(final_result, centroid)
 
     # ------------------ Afisarea rezultatului ------------------------------------------------------------
-    og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
-    output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
+    output_image = cv.imread(path_img)
     cv.polylines(output_image, [np.array(final_sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
 
     cv.imshow('Convex Hull', output_image)
