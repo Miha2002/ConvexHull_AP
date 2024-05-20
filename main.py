@@ -5,7 +5,7 @@ from PIL import Image
 from mpi4py import MPI
 
 # Configurare path imagine
-path_img = "flower.png"
+path_img = "random.png"
 
 # Initializare MPI
 comm = MPI.COMM_WORLD
@@ -26,7 +26,7 @@ def calculate_centroid(points):
     return centroid_x, centroid_y
 
 
-# Calculeaza unghiul dintre axa X si 2 puncte
+# Calculeaza unghiul dintre axa OX si 2 puncte
 def calculate_angle(point, centroid):
     return np.arctan2(point[1] - centroid[1], point[0] - centroid[0])
 
@@ -57,7 +57,7 @@ def findSide(p1, p2, p):
     return 0
 
 
-# Calc distanta dreptei perpendiculare din pct p pe dreapta p1,p2
+# Calc distanta de la pct p pana la dreapta p1,p2
 def lineDist(p1, p2, p):
     return abs((p[1] - p1[1]) * (p2[0] - p1[0]) -
                (p2[1] - p1[1]) * (p[0] - p1[0]))
