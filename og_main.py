@@ -3,10 +3,22 @@ import cv2 as cv
 import numpy as np
 from PIL import Image
 
-# Configure
-path_img = "cal.png"
-
+# Configurare
+path_img = "art.png"
 hull = set()
+
+
+def calculate_centroid(points):
+    x = [point[0] for point in points]
+    y = [point[1] for point in points]
+    centroid_x = sum(x) / len(points)
+    centroid_y = sum(y) / len(points)
+    return centroid_x, centroid_y
+
+
+def calculate_angle(point, centroid):
+    return np.arctan2(point[1] - centroid[1], point[0] - centroid[0])
+
 
 def findSide(p1, p2, p):
     val = (p[1] - p1[1]) * (p2[0] - p1[0]) - (p2[1] - p1[1]) * (p[0] - p1[0])
@@ -27,8 +39,6 @@ def quickHull(a, n, p1, p2, side):
     ind = -1
     max_dist = 0
 
-    # finding the point with maximum distance
-    # from L and also on the specified side of L.
     for i in range(n):
         temp = lineDist(p1, p2, a[i])
 
@@ -36,20 +46,16 @@ def quickHull(a, n, p1, p2, side):
             ind = i
             max_dist = temp
 
-    # If no point is found, add the end points
-    # of L to the convex hull.
     if ind == -1:
-        hull.add((p1[0], p1[1]))  # Add tuple instead of string
-        hull.add((p2[0], p2[1]))  # Add tuple instead of string
+        hull.add((p1[0], p1[1]))
+        hull.add((p2[0], p2[1]))
         return
 
-    # Recur for the two parts divided by a[ind]
     quickHull(a, n, a[ind], p1, -findSide(a[ind], p1, p2))
     quickHull(a, n, a[ind], p2, -findSide(a[ind], p2, p1))
 
 
 def printHull(a, n):
-    # a[i].second -> y-coordinate of the ith point
     if (n < 3):
         print("Convex hull not possible")
         return
@@ -71,7 +77,6 @@ def printHull(a, n):
 # Driver code
 start_time = time.time()
 
-
 img = Image.open(path_img).convert("L")
 width, height = img.size
 pixels = img.load()
@@ -79,25 +84,11 @@ pixels = img.load()
 black_pixels = []
 for y in range(height):
     for x in range(width):
-        if pixels[x, y] == 0:  # Assuming black pixel value is 0
+        if pixels[x, y] == 0:
             black_pixels.append((x, y))
 n = len(black_pixels)
 all_points = printHull(black_pixels, n)
 
-
-def calculate_centroid(points):
-    x = [point[0] for point in points]
-    y = [point[1] for point in points]
-    centroid_x = sum(x) / len(points)
-    centroid_y = sum(y) / len(points)
-    return centroid_x, centroid_y
-
-
-def calculate_angle(point, centroid):
-    return np.arctan2(point[1] - centroid[1], point[0] - centroid[0])
-
-
-# Measure execution time
 end_time = time.time()
 print("\nExecution time: {:.4f} seconds".format(end_time - start_time))
 
@@ -107,7 +98,7 @@ og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
 output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
 cv.polylines(output_image, [np.array(sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
 
-# Show the result
+# Afisare
 cv.imshow('Convex Hull', output_image)
 cv.waitKey(0)
 cv.destroyAllWindows()
