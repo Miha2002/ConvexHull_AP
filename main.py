@@ -157,7 +157,7 @@ if rank == 0:
     # Deschidem imaginea si o facem alb-negru
     img = Image.open(path_img).convert("L")
     img = img.point(lambda x: 0 if x<128 else 255, '1') # Face imaginea alb/negru = 1/0
-    img.show()
+    # img.show()
     width, height = img.size
     pixels = img.load()
 
