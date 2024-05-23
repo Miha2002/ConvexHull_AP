@@ -5,7 +5,7 @@ from PIL import Image
 from mpi4py import MPI
 
 # Configurare path imagine
-path_img = "color.jpg"
+path_img = "art.png"
 
 # Initializare MPI
 comm = MPI.COMM_WORLD
@@ -118,7 +118,7 @@ def printHull(a, n):
 
             # og_image = cv.imread(path_img, cv.IMREAD_GRAYSCALE)
             # output_image = cv.cvtColor(og_image, cv.COLOR_GRAY2BGR)
-            # cv.polylines(output_image, [np.array(list(proc_hull))], isClosed=True, color=(0, 255, 0), thickness=2)
+            # cv.polylines(output_image, [np.array(list(sortd))], isClosed=True, color=(0, 255, 0), thickness=2)
             # cv.imshow('Convex Hull', output_image)
             # cv.waitKey(0)
             # cv.destroyAllWindows()
@@ -190,7 +190,7 @@ if rank == 0:
 
     # Calculam timpul de executie al algoritmului
     end_time = time.time()
-    print("\nExecution time for {} processes: {:.4f} seconds\n".format(size, end_time - start_time))
+    print("\nInitial execution time for {} processes: {:.4f} seconds".format(size, end_time - start_time))
 
     # Centrul punctelor negre / formei
     centroid = calculate_centroid(all_points_flat)
@@ -201,10 +201,13 @@ if rank == 0:
     centroid = calculate_centroid(final_result)
     final_sorted_points = sort_points_by_angle(final_result, centroid)
 
-    # ------------------ Afisarea rezultatului ------------------------------------------------------------
-    output_image = cv.imread(path_img)
-    cv.polylines(output_image, [np.array(final_sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
+    total_end_time = time.time()
+    print("Total execution time for {} processes: {:.4f} seconds\n".format(size, total_end_time - start_time))
 
-    cv.imshow('Convex Hull', output_image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    # ------------------ Afisarea rezultatului ------------------------------------------------------------
+    # output_image = cv.imread(path_img)
+    # cv.polylines(output_image, [np.array(final_sorted_points)], isClosed=True, color=(0, 255, 0), thickness=2)
+    #
+    # cv.imshow('Convex Hull', output_image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
